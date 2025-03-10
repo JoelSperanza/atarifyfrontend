@@ -1,0 +1,719 @@
+:root {
+  --primary-color: #4361ee;
+  --primary-color-hover: #3a56d4;
+  --secondary-color: #4cc9f0;
+  --danger-color: #f44336;
+  --danger-hover: #d32f2f;
+  --text-color: #333;
+  --text-light: #666;
+  --light-gray: #f8f9fa;
+  --border-color: #e0e0e0;
+  --hover-color: #f0f7ff;
+  --disabled-color: #ebebeb;
+  --disabled-text: #999;
+  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: #f5f7fb;
+}
+
+/* App Container */
+.app-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+.app-header {
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.app-header h1 {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 28px;
+}
+
+/* Content Layout */
+.content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Settings Panel */
+.settings-panel {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 10px;
+  /* Make settings panel more horizontal */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 15px;
+}
+
+/* Make slider container more compact and horizontal */
+.slider-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+/* Adjust label and help text to be more compact */
+.slider-container label {
+  font-weight: 500;
+  color: var(--text-color);
+  margin-right: 5px;
+  white-space: nowrap;
+}
+
+/* Number Input with Custom Controls */
+.number-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 120px;
+}
+
+.number-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-color);
+  background-color: white;
+  text-align: center;
+  -moz-appearance: textfield; /* Remove default arrows in Firefox */
+}
+
+/* Remove default arrows from number input */
+.number-input::-webkit-outer-spin-button,
+.number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.number-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.number-input:disabled {
+  background-color: var(--disabled-color);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+}
+
+/* Custom number input controls */
+.number-input-controls {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  border-left: 1px solid var(--border-color);
+}
+
+.number-input-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  background-color: #f5f7fb;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  color: var(--text-color);
+}
+
+.number-input-button:first-child {
+  border-top-right-radius: 5px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.number-input-button:last-child {
+  border-bottom-right-radius: 5px;
+}
+
+.number-input-button:hover {
+  background-color: var(--hover-color);
+}
+
+.number-input-button:active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.number-input-button:disabled {
+  background-color: var(--disabled-color);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+}
+
+/* Adjust label and help text to be more compact */
+.variation-help-text {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 0;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+/* Improve layout for settings controls */
+.settings-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+}
+
+.settings-controls .slider-container {
+  margin-bottom: 0;
+}
+
+.search-and-clear {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 15px; /* Add space between buttons and search */
+}
+
+/* Updated navigation-tabs to fit all buttons in one row */
+.navigation-tabs {
+  display: flex;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  gap: 5px; /* Reduce gap between buttons */
+  margin-bottom: 20px;
+  width: 100%;
+  align-items: center;
+  overflow-x: auto; /* Allow horizontal scrolling if needed */
+  padding-bottom: 5px; /* Space for potential scrollbar */
+}
+
+/* Make nav buttons more compact */
+.nav-btn {
+  padding: 10px 15px; /* Reduce padding */
+  background-color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  white-space: nowrap; /* Prevent text wrapping within buttons */
+  flex: 0 0 auto; /* Don't allow buttons to grow or shrink */
+}
+
+.nav-btn:hover:not(:disabled) {
+  background-color: var(--hover-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+}
+
+.nav-btn:disabled {
+  background-color: var(--disabled-color);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Clear data button styling */
+.navigation-tabs .clear-data-btn {
+  padding: 10px 15px; /* Match nav buttons */
+  flex: 0 0 auto;
+  white-space: nowrap;
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.clear-data-btn:hover {
+  background-color: var(--danger-hover);
+}
+
+/* Update search wrapper to display the search and variation control inline */
+.search-wrapper {
+  width: 100%;
+  background-color: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* Adjust the search container width to make room for variation control */
+.search-container {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  background-color: white; /* Explicit white background */
+  color: var(--text-color); /* Ensure text is dark for readability */
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+  background-color: white; /* Maintain white background on focus */
+}
+
+.search-input::placeholder {
+  color: #999; /* Lighter gray for placeholder text */
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-search-btn:hover {
+  color: var(--text-color);
+}
+
+/* Make the slider container more horizontal and aligned */
+.search-wrapper .slider-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 0;
+  justify-content: flex-end;
+  max-width: 400px;
+}
+
+/* Processing indicator */
+.processing-indicator {
+  color: var(--primary-color);
+  font-size: 14px;
+  font-style: italic;
+  margin-left: 8px;
+}
+
+/* Adjust spacing for processing error */
+.processing-error {
+  color: var(--danger-color);
+  font-size: 14px;
+  margin-top: 5px;
+  margin: 0;
+  background-color: rgba(244, 67, 54, 0.1);
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+/* Main Content */
+.main-content {
+  width: 100%;
+}
+
+.content-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 20px;
+}
+
+.content-card h2 {
+  margin-bottom: 15px;
+  color: var(--text-color);
+  font-weight: 600;
+  font-size: 20px;
+  display: inline-block; /* Allow it to be on same line as the download button */
+  margin-right: 15px; /* Space between title and button if they are on same line */
+}
+
+.help-text {
+  color: var(--text-light);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Table Styling */
+.table-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+/* When inside table-header, we don't need bottom margin for actions */
+.table-header .table-actions {
+  margin-bottom: 0;
+}
+
+.download-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.download-btn:hover {
+  background-color: var(--primary-color-hover);
+}
+
+.download-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table th {
+  background-color: #f8f9fa;
+  color: var(--text-color);
+  font-weight: 600;
+  text-align: left;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.th-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sort-icon {
+  margin-left: 5px;
+  color: var(--text-light);
+}
+
+.data-table th.sorted-ascending,
+.data-table th.sorted-descending {
+  background-color: #eef5ff;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color); /* Ensure table cell text is visible */
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table .even-row {
+  background-color: white;
+}
+
+.data-table .odd-row {
+  background-color: #fafbfc;
+}
+
+.data-table tr:hover {
+  background-color: var(--hover-color);
+}
+
+/* Summary Stats */
+.summary-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.stat-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  flex: 1;
+  min-width: 200px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card h3 {
+  font-size: 16px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.no-data {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* File Upload Form */
+.upload-form-container {
+  padding: 15px;
+}
+
+.upload-instructions {
+  margin-bottom: 20px;
+  color: var(--text-light);
+}
+
+.file-input-container {
+  margin-bottom: 20px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 15px;
+}
+
+.file-input-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.file-input-button:hover {
+  background-color: var(--primary-color-hover);
+}
+
+.file-name {
+  color: var(--text-color);
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.variation-note {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--text-light);
+}
+
+.upload-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  max-width: 250px;
+  text-align: center;
+}
+
+.upload-button:hover:not(:disabled) {
+  background-color: var(--primary-color-hover);
+}
+
+.upload-button:disabled {
+  background-color: var(--disabled-color);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+}
+
+.upload-button.uploading {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.upload-error {
+  margin-top: 15px;
+  color: var(--danger-color);
+  font-size: 14px;
+  padding: 10px;
+  background-color: rgba(244, 67, 54, 0.1);
+  border-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .slider-container {
+    width: 100%;
+  }
+  
+  .settings-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-and-clear {
+    flex-direction: column;
+  }
+  
+  .search-container,
+  .clear-data-container {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .file-input-label {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .file-name {
+    margin-top: 8px;
+  }
+  
+  .content-card {
+    padding: 15px;
+  }
+  
+  /* Additional responsive adjustments for compact layout */
+  .settings-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .settings-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .slider-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  /* For mobile responsiveness with new layout */
+  .search-wrapper {
+    flex-direction: column;
+  }
+  
+  .search-wrapper .slider-container,
+  .search-container {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* For mobile layout - allow stacking but only when screen is very narrow */
+@media (max-width: 600px) {
+  .navigation-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .nav-btn, 
+  .navigation-tabs .clear-data-btn {
+    flex: 1 1 auto; /* Allow buttons to grow and fit available space */
+    text-align: center;
+  }
+}
+/* Add this to your App.css file to ensure the search wrapper is hidden initially */
+
+.search-wrapper {
+  display: none; /* Hide by default */
+}
+
+.search-wrapper.visible {
+  display: flex; /* Only show when the visible class is added */
+}
