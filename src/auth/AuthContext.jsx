@@ -91,25 +91,39 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    // First, clear local state
+    // Clear local state
     setIsAuthenticated(false);
     setUser(null);
     
-    // Use simpler approach: just remove the user from oidcAuth
-    // and redirect to login page
-    try {
-      // Remove user from oidcAuth
-      if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
-        oidcAuth.removeUser();
-      }
-      
-      // Redirect to login page
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Error during logout:', error);
-      // If there's an error, just redirect to login
-      window.location.href = '/login';
+    // Remove user from oidcAuth
+    if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
+      oidcAuth.removeUser();
     }
+    
+    // Clear all cookies related to Cognito and authentication
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i];
+      const eqPos = cookie.indexOf('=');
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+      
+      // Delete all Cognito and OIDC related cookies
+      if (name.includes('cognito') || name.includes('idToken') || name.includes('accessToken') || 
+          name.includes('auth') || name.includes('oidc') || name.includes('XSRF')) {
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+      }
+    }
+    
+    // Clear localStorage items related to authentication
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes('oidc') || key.includes('cognito') || key.includes('auth'))) {
+        localStorage.removeItem(key);
+      }
+    }
+    
+    // Force a page reload to clear any in-memory state
+    window.location.href = '/login';
   };
 
   const createPortalSession = async () => {
