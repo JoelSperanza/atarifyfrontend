@@ -91,31 +91,24 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    // Use the built-in signout method if available
-    if (oidcAuth && typeof oidcAuth.signoutRedirect === 'function') {
-      try {
-        oidcAuth.signoutRedirect();
-      } catch (error) {
-        console.error('Error using signoutRedirect:', error);
-        // Fall back to manual method if signoutRedirect fails
-        fallbackLogout();
-      }
-    } else {
-      // Use manual logout method
-      fallbackLogout();
-    }
-    
-    // Local cleanup
+    // First, clear local state
     setIsAuthenticated(false);
     setUser(null);
     
-    function fallbackLogout() {
-      // For Cognito hosted UI logout, we need to use this specific format
-      const domain = "ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
-      const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-      const logoutUri = encodeURIComponent("https://app.atarpredictionsqld.com.au/login");
+    // Use simpler approach: just remove the user from oidcAuth
+    // and redirect to login page
+    try {
+      // Remove user from oidcAuth
+      if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
+        oidcAuth.removeUser();
+      }
       
-      window.location.href = `https://${domain}/logout?client_id=${clientId}&logout_uri=${logoutUri}`;
+      // Redirect to login page
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // If there's an error, just redirect to login
+      window.location.href = '/login';
     }
   };
 
