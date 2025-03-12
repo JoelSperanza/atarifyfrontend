@@ -91,39 +91,43 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    // Clear local state
+    // Local cleanup
     setIsAuthenticated(false);
     setUser(null);
     
-    // Remove user from oidcAuth
-    if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
-      oidcAuth.removeUser();
-    }
-    
-    // Clear all cookies related to Cognito and authentication
+    // Clear all cookies (this is a more aggressive approach)
     const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i];
       const eqPos = cookie.indexOf('=');
       const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-      
-      // Delete all Cognito and OIDC related cookies
-      if (name.includes('cognito') || name.includes('idToken') || name.includes('accessToken') || 
-          name.includes('auth') || name.includes('oidc') || name.includes('XSRF')) {
-        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
-      }
+      document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
     }
     
-    // Clear localStorage items related to authentication
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (key.includes('oidc') || key.includes('cognito') || key.includes('auth'))) {
-        localStorage.removeItem(key);
-      }
+    // Clear localStorage
+    localStorage.clear();
+    
+    // Get the ID token (needed for proper Cognito logout)
+    let idToken = '';
+    if (oidcAuth && oidcAuth.user) {
+      idToken = oidcAuth.user.id_token;
     }
     
-    // Force a page reload to clear any in-memory state
-    window.location.href = '/login';
+    // Directly access the Cognito logout endpoint with all required parameters
+    const domain = "ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
+    const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
+    const logoutUri = encodeURIComponent("https://app.atarpredictionsqld.com.au/login");
+    
+    // Construct the complete logout URL with the ID token hint
+    let logoutUrl = `https://${domain}/logout?client_id=${clientId}&logout_uri=${logoutUri}`;
+    
+    // Add ID token if available
+    if (idToken) {
+      logoutUrl += `&id_token_hint=${idToken}`;
+    }
+    
+    // Navigate to the logout URL
+    window.location.href = logoutUrl;
   };
 
   const createPortalSession = async () => {
