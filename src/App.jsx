@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import UploadForm from "./UploadForm";
+import Login from "./auth/Login";
+import { AuthProvider, useAuth } from "./auth/AuthContext";
+import ProtectedRoute from "./auth/ProtectedRoute";
 import './App.css';
 
 const downloadCSV = (data, filename) => {
@@ -236,7 +240,8 @@ const DataTable = ({ data, columns, tableTitle, customHeaders, title }) => {
   );
 };
 
-const App = () => {
+// Main application component that will be protected by authentication
+const MainAppContent = () => {
   const [data, setData] = useState(null);
   const [view, setView] = useState("upload");
   const [resultVariation, setResultVariation] = useState(3);
@@ -251,6 +256,8 @@ const App = () => {
     "Student Ranged ATARs": null,
     "Student Ranged Atar Summary": null
   });
+  
+  const { user, logout, createPortalSession } = useAuth();
 
   useEffect(() => {
     console.log("Data received in App:", data);
@@ -386,10 +393,38 @@ const App = () => {
     }
   };
 
+  // Handle subscription management
+  const handleManageSubscription = async () => {
+    await createPortalSession();
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>ATAR Predictor</h1>
+        <div className="user-controls">
+          {user && (
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+              <span style={{ color: '#666' }}>
+                {user.email}
+              </span>
+              <button 
+                className="btn-secondary" 
+                style={{ padding: '8px 16px', fontSize: '14px' }}
+                onClick={handleManageSubscription}
+              >
+                Manage Subscription
+              </button>
+              <button 
+                className="btn-secondary" 
+                style={{ padding: '8px 16px', fontSize: '14px' }}
+                onClick={logout}
+              >
+                Log Out
+              </button>
+            </div>
+          )}
+        </div>
       </header>
       
       <div className="content-container">
@@ -622,6 +657,26 @@ const App = () => {
         </main>
       </div>
     </div>
+  );
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <MainAppContent />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 };
 
