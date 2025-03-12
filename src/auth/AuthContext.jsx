@@ -20,7 +20,6 @@ export function AuthProvider({ children }) {
 
     if (oidcAuth.isAuthenticated && oidcAuth.user) {
       const email = oidcAuth.user.profile.email;
-
       const verifySubscription = async () => {
         setIsLoading(true);
         if (window.location.hostname === 'localhost') {
@@ -71,14 +70,17 @@ export function AuthProvider({ children }) {
     oidcAuth.signinRedirect();
   };
 
-  const logout = () => {
+  const logout = async () => {
     setIsAuthenticated(false);
     setUser(null);
 
     // Remove OIDC session
     if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
-      oidcAuth.removeUser();
+      await oidcAuth.removeUser();
     }
+
+    // Get ID token for proper Cognito logout
+    let idToken = oidcAuth.user?.id_token || '';
 
     // Clear cookies & local storage
     document.cookie.split(';').forEach((cookie) => {
@@ -91,7 +93,11 @@ export function AuthProvider({ children }) {
     const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
     const logoutUri = encodeURIComponent("https://app.atarpredictionsqld.com.au/login");
 
-    window.location.href = `https://${domain}/logout?client_id=${clientId}&logout_uri=${logoutUri}`;
+    // Proper logout request with ID token hint
+    const logoutUrl = `https://${domain}/logout?client_id=${clientId}&logout_uri=${logoutUri}${idToken ? `&id_token_hint=${idToken}` : ''}`;
+
+    // Redirect to logout URL
+    window.location.href = logoutUrl;
   };
 
   const createPortalSession = async () => {
@@ -136,3 +142,4 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
