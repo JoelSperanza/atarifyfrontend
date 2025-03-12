@@ -91,17 +91,22 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-  // Get the cognito signout URL
-  const domain = "ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
-  const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-  const logoutUri = encodeURIComponent("https://app.atarpredictionsqld.com.au/login");
-  
-  // Redirect to Cognito logout endpoint
-  window.location.href = `https://${domain}/logout?client_id=${clientId}&logout_uri=${logoutUri}`;
-  
-  // Local cleanup
-  setIsAuthenticated(false);
-  setUser(null);
+    // Try to use the OIDC signout method first
+    if (oidcAuth && typeof oidcAuth.signoutRedirect === 'function') {
+      oidcAuth.signoutRedirect();
+    } else {
+      // Fallback to manual logout
+      const domain = "ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
+      const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
+      const logoutUri = encodeURIComponent("https://app.atarpredictionsqld.com.au/login");
+      
+      // Redirect to Cognito logout endpoint (using redirect_uri instead of logout_uri)
+      window.location.href = `https://${domain}/logout?client_id=${clientId}&redirect_uri=${logoutUri}&response_type=code`;
+    }
+    
+    // Local cleanup
+    setIsAuthenticated(false);
+    setUser(null);
   };
 
   const createPortalSession = async () => {
