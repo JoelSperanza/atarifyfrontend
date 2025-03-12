@@ -5,6 +5,7 @@ import Login from "./auth/Login";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import './App.css';
+import AuthCallback from "./auth/AuthCallback";
 
 const downloadCSV = (data, filename) => {
   if (!data || data.length === 0) return;
@@ -666,6 +667,7 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+	   <Route path="/auth-callback" element={<AuthCallback />} />
           <Route
             path="/*"
             element={

@@ -1,27 +1,37 @@
 // src/auth/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth as useOidcAuth } from 'react-oidc-context';
 import Cookies from 'js-cookie';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  const oidcAuth = useOidcAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
 
+  // Effect to handle Cognito authentication status changes
   useEffect(() => {
-    // Check for auth cookie on load
-    const checkAuth = async () => {
-      const userEmail = Cookies.get('userEmail');
+    if (oidcAuth.isLoading) {
+      setIsLoading(true);
+      return;
+    }
+
+    if (oidcAuth.isAuthenticated && oidcAuth.user) {
+      const email = oidcAuth.user.profile.email;
       
-      if (userEmail) {
+      // When Cognito auth is successful, verify subscription
+      const verifySubscription = async () => {
+        setIsLoading(true);
+        
         // LOCAL DEVELOPMENT BYPASS
         if (window.location.hostname === 'localhost') {
-          console.log('DEV MODE: Bypassing API validation for stored user');
+          console.log('DEV MODE: Bypassing API validation for Cognito authenticated user');
           setIsAuthenticated(true);
           setUser({ 
-            email: userEmail, 
+            email, 
             customerId: 'dev-customer-id',
             subscriptionId: 'dev-subscription-id'
           });
@@ -36,7 +46,7 @@ export function AuthProvider({ children }) {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email: userEmail }),
+            body: JSON.stringify({ email }),
           });
           
           const data = await response.json();
@@ -44,89 +54,44 @@ export function AuthProvider({ children }) {
           if (data.active) {
             setIsAuthenticated(true);
             setUser({ 
-              email: userEmail, 
+              email, 
               customerId: data.customerId,
               subscriptionId: data.subscriptionId
             });
           } else {
             // Subscription inactive or expired
-            Cookies.remove('userEmail');
+            oidcAuth.removeUser(); // Sign out from Cognito
             setIsAuthenticated(false);
             setUser(null);
+            setError('No active subscription found for this email. Please subscribe first.');
           }
         } catch (error) {
           console.error('Auth verification failed:', error);
           setIsAuthenticated(false);
           setUser(null);
           setError('Authentication verification failed. Please try logging in again.');
+        } finally {
+          setIsLoading(false);
         }
-      }
+      };
       
+      verifySubscription();
+    } else {
+      setIsAuthenticated(false);
+      setUser(null);
       setIsLoading(false);
-    };
-    
-    checkAuth();
-  }, []);
+    }
+  }, [oidcAuth.isAuthenticated, oidcAuth.isLoading, oidcAuth.user]);
 
-  const login = async (email) => {
-    setIsLoading(true);
+  const login = async () => {
     setError(null);
-    
-    // LOCAL DEVELOPMENT BYPASS
-    if (window.location.hostname === 'localhost') {
-      console.log('DEV MODE: Bypassing API validation for login');
-      Cookies.set('userEmail', email, { expires: 7 });
-      setIsAuthenticated(true);
-      setUser({ 
-        email, 
-        customerId: 'dev-customer-id',
-        subscriptionId: 'dev-subscription-id'
-      });
-      setIsLoading(false);
-      return { success: true };
-    }
-    
-    try {
-      console.log('Making API request to verify subscription');
-      const response = await fetch('https://1w8huooby5.execute-api.ap-southeast-2.amazonaws.com/prod/verify-subscription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-      
-      console.log('API response status:', response.status);
-      const data = await response.json();
-      console.log('API response data:', data);
-      
-      if (data.active) {
-        Cookies.set('userEmail', email, { expires: 7 });
-        setIsAuthenticated(true);
-        setUser({ 
-          email, 
-          customerId: data.customerId,
-          subscriptionId: data.subscriptionId
-        });
-        return { success: true };
-      } else {
-        setError('No active subscription found for this email. Please subscribe first.');
-        return { 
-          success: false, 
-          redirectToSubscribe: true 
-        };
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('Login failed. Please try again.');
-      return { success: false };
-    } finally {
-      setIsLoading(false);
-    }
+    // Redirect to Cognito login
+    oidcAuth.signinRedirect();
+    return { success: true };
   };
 
   const logout = () => {
-    Cookies.remove('userEmail');
+    oidcAuth.removeUser();
     setIsAuthenticated(false);
     setUser(null);
   };
