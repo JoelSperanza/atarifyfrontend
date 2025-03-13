@@ -2,12 +2,10 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { useAuth as useOidcAuth } from 'react-oidc-context';
 import '../App.css';
 
 const Login = () => {
   const { login, isLoading, error, isAuthenticated } = useAuth();
-  const oidcAuth = useOidcAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -15,23 +13,16 @@ const Login = () => {
   const isReset = new URLSearchParams(location.search).get('reset') === 'true';
 
   useEffect(() => {
-    // Handle the reset parameter - force a complete sign out from Cognito
-    if (isReset && oidcAuth) {
-      // Force OIDC to forget any existing session
-      if (typeof oidcAuth.removeUser === 'function') {
-        oidcAuth.removeUser();
-      }
-      
-      // Clear URL parameters to prevent recurring resets
-      window.history.replaceState({}, document.title, '/login');
-      return;
-    }
-    
-    // Normal flow - if already authenticated, redirect to main app
-    if (isAuthenticated) {
+    // If it's not a reset request and user is authenticated, redirect to main app
+    if (!isReset && isAuthenticated) {
       navigate('/');
     }
-  }, [isAuthenticated, navigate, isReset, oidcAuth]);
+    
+    // If it's a reset request, clear the URL parameters
+    if (isReset) {
+      window.history.replaceState({}, document.title, '/login');
+    }
+  }, [isAuthenticated, navigate, isReset]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
