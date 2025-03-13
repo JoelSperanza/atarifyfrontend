@@ -70,27 +70,74 @@ export function AuthProvider({ children }) {
     oidcAuth.signinRedirect();
   };
 
-  const logout = () => {
-    // Local state cleanup
-    setIsAuthenticated(false);
-    setUser(null);
+  const logout = async () => {
+    try {
+      // Local state cleanup
+      setIsAuthenticated(false);
+      setUser(null);
 
-    // Remove OIDC user
-    if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
-      oidcAuth.removeUser();
+      // Get the current URL
+      const currentUrl = window.location.origin;
+      
+      // First try to reset the OIDC auth settings
+      if (oidcAuth) {
+        // Try to revoke tokens if available
+        if (typeof oidcAuth.revokeTokens === 'function') {
+          try {
+            await oidcAuth.revokeTokens();
+          } catch (e) {
+            console.error('Error revoking tokens:', e);
+          }
+        }
+        
+        // Then remove the user
+        if (typeof oidcAuth.removeUser === 'function') {
+          try {
+            await oidcAuth.removeUser();
+          } catch (e) {
+            console.error('Error removing user:', e);
+          }
+        }
+      }
+      
+      // Directly access and clear OIDC-specific localStorage items
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('oidc.user:') || key.includes('oidc.cache'))) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      
+      // Clear everything else to be sure
+      sessionStorage.clear();
+      
+      // Clear cookies
+      document.cookie.split(';').forEach((cookie) => {
+        const cookieName = cookie.split('=')[0].trim();
+        document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
+      });
+      
+      // For good measure, also clear specific Cognito cookies
+      ['.AspNetCore.Correlation', 'XSRF-TOKEN', 'oidc.', 'APISID', 'SID'].forEach((prefix) => {
+        document.cookie = `${prefix}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname};`;
+      });
+      
+      // Force a complete page reload to a specific login URL
+      // This changes the full URL to break any cached state
+      setTimeout(() => {
+        window.location.href = `${currentUrl}/login?nocache=${Date.now()}`;
+      }, 100);
+      
+    } catch (e) {
+      console.error('Logout error:', e);
+      // Fallback to simple redirect
+      window.location.href = '/login';
     }
-
-    // Clear memory state and cookies
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // Clear cookies
-    document.cookie.split(';').forEach((cookie) => {
-      document.cookie = cookie.split('=')[0] + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;';
-    });
-    
-    // Force a complete page reload (bypass cache)
-    window.location.href = '/login?fresh=' + new Date().getTime();
   };
 
   const createPortalSession = async () => {
