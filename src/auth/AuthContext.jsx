@@ -84,15 +84,13 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Variables from the example code
+    // Variables for logout
     const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-    const logoutUri = "https://app.atarpredictionsqld.com.au/login"; // Note: not encoded
+    const logoutUri = "https://www.atarpredictionsqld.com.au"; // Main website
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     
-    // Use template literal format exactly as shown in example
+    // Redirect to Cognito logout, returning to main website
     const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-    
-    // Redirect to the constructed URL
     window.location.href = logoutUrl;
   };
 
