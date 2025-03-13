@@ -70,34 +70,27 @@ export function AuthProvider({ children }) {
     oidcAuth.signinRedirect();
   };
 
-  const logout = async () => {
+  const logout = () => {
+    // Local state cleanup
     setIsAuthenticated(false);
     setUser(null);
 
-    // Remove OIDC session
+    // Remove OIDC user
     if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
-      await oidcAuth.removeUser();
+      oidcAuth.removeUser();
     }
 
-    // Get ID token for proper Cognito logout
-    let idToken = oidcAuth.user?.id_token || '';
-
-    // Clear cookies & local storage
+    // Clear memory state and cookies
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Clear cookies
     document.cookie.split(';').forEach((cookie) => {
       document.cookie = cookie.split('=')[0] + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;';
     });
-    localStorage.clear();
-
-    // Cognito logout URL
-    const domain = "ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
-    const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-    const logoutUri = encodeURIComponent("https://app.atarpredictionsqld.com.au/login");
-
-    // Proper logout request with ID token hint
-    const logoutUrl = `https://${domain}/logout?client_id=${clientId}&logout_uri=${logoutUri}${idToken ? `&id_token_hint=${idToken}` : ''}`;
-
-    // Redirect to logout URL
-    window.location.href = logoutUrl;
+    
+    // Force a complete page reload (bypass cache)
+    window.location.href = '/login?fresh=' + new Date().getTime();
   };
 
   const createPortalSession = async () => {
@@ -142,4 +135,3 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
-
