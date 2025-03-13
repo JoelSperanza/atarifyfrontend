@@ -84,13 +84,16 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Use the proper Cognito sign-out URL
+    // Variables from the example code
     const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-    const logoutUri = encodeURIComponent("https://app.atarpredictionsqld.com.au/login");
+    const logoutUri = "https://app.atarpredictionsqld.com.au/login"; // Note: not encoded
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     
-    // Redirect to Cognito's logout endpoint
-    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${logoutUri}`;
+    // Use template literal format exactly as shown in example
+    const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    
+    // Redirect to the constructed URL
+    window.location.href = logoutUrl;
   };
 
   const createPortalSession = async () => {
