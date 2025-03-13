@@ -70,74 +70,74 @@ export function AuthProvider({ children }) {
     oidcAuth.signinRedirect();
   };
 
-  const logout = async () => {
+  const logout = () => {
+    // Clear application state
+    setIsAuthenticated(false);
+    setUser(null);
+    
+    console.log("Logging out...");
+    
+    // Try to get the Cognito domain from OIDC settings
+    let authority = "";
+    if (oidcAuth && oidcAuth.settings && oidcAuth.settings.authority) {
+      authority = oidcAuth.settings.authority;
+      console.log("Found authority:", authority);
+    } else {
+      authority = "https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iDzdvQ5YV";
+      console.log("Using default authority");
+    }
+    
+    // Get client ID
+    let clientId = "";
+    if (oidcAuth && oidcAuth.settings && oidcAuth.settings.client_id) {
+      clientId = oidcAuth.settings.client_id;
+      console.log("Found client ID:", clientId);
+    } else {
+      clientId = "4isq033nj4h9hfmpfoo8ikjchf";
+      console.log("Using default client ID");
+    }
+    
+    // First try removing the user from OIDC context
+    if (oidcAuth && oidcAuth.removeUser) {
+      try {
+        console.log("Removing OIDC user");
+        oidcAuth.removeUser();
+      } catch (e) {
+        console.error("Error removing OIDC user:", e);
+      }
+    }
+    
+    // Wipe all browser state for this site as aggressively as possible
+    console.log("Clearing storage");
     try {
-      // Local state cleanup
-      setIsAuthenticated(false);
-      setUser(null);
-
-      // Get the current URL
-      const currentUrl = window.location.origin;
-      
-      // First try to reset the OIDC auth settings
-      if (oidcAuth) {
-        // Try to revoke tokens if available
-        if (typeof oidcAuth.revokeTokens === 'function') {
-          try {
-            await oidcAuth.revokeTokens();
-          } catch (e) {
-            console.error('Error revoking tokens:', e);
-          }
-        }
-        
-        // Then remove the user
-        if (typeof oidcAuth.removeUser === 'function') {
-          try {
-            await oidcAuth.removeUser();
-          } catch (e) {
-            console.error('Error removing user:', e);
-          }
-        }
-      }
-      
-      // Directly access and clear OIDC-specific localStorage items
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('oidc.user:') || key.includes('oidc.cache'))) {
-          keysToRemove.push(key);
-        }
-      }
-      
-      keysToRemove.forEach(key => {
-        localStorage.removeItem(key);
-      });
-      
-      // Clear everything else to be sure
+      // Clear all storage
+      localStorage.clear();
       sessionStorage.clear();
       
-      // Clear cookies
-      document.cookie.split(';').forEach((cookie) => {
-        const cookieName = cookie.split('=')[0].trim();
-        document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
+      // Clear all cookies
+      document.cookie.split(';').forEach(cookie => {
+        const parts = cookie.split('=');
+        const name = parts[0].trim();
+        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
       });
       
-      // For good measure, also clear specific Cognito cookies
-      ['.AspNetCore.Correlation', 'XSRF-TOKEN', 'oidc.', 'APISID', 'SID'].forEach((prefix) => {
-        document.cookie = `${prefix}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname};`;
+      // Use js-cookie to clear cookies as well (double clean)
+      Object.keys(Cookies.get()).forEach(function(cookieName) {
+        Cookies.remove(cookieName);
       });
-      
-      // Force a complete page reload to a specific login URL
-      // This changes the full URL to break any cached state
-      setTimeout(() => {
-        window.location.href = `${currentUrl}/login?nocache=${Date.now()}`;
-      }, 100);
-      
     } catch (e) {
-      console.error('Logout error:', e);
-      // Fallback to simple redirect
-      window.location.href = '/login';
+      console.error("Error clearing storage:", e);
     }
+    
+    // Force a page navigation to break any in-memory state
+    console.log("Redirecting to new page");
+    
+    // Construct a URL for our own page that won't trigger an automatic login
+    const randomParam = Math.random().toString(36).substring(2, 15);
+    const destination = `/login?reset=true&nocache=${randomParam}`;
+    
+    // Navigate to our own page first
+    window.location.href = destination;
   };
 
   const createPortalSession = async () => {
