@@ -71,73 +71,26 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    // Clear application state
+    // Local cleanup
     setIsAuthenticated(false);
     setUser(null);
     
-    console.log("Logging out...");
-    
-    // Try to get the Cognito domain from OIDC settings
-    let authority = "";
-    if (oidcAuth && oidcAuth.settings && oidcAuth.settings.authority) {
-      authority = oidcAuth.settings.authority;
-      console.log("Found authority:", authority);
-    } else {
-      authority = "https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iDzdvQ5YV";
-      console.log("Using default authority");
-    }
-    
-    // Get client ID
-    let clientId = "";
-    if (oidcAuth && oidcAuth.settings && oidcAuth.settings.client_id) {
-      clientId = oidcAuth.settings.client_id;
-      console.log("Found client ID:", clientId);
-    } else {
-      clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-      console.log("Using default client ID");
-    }
-    
-    // First try removing the user from OIDC context
-    if (oidcAuth && oidcAuth.removeUser) {
+    // Remove local tokens
+    if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
       try {
-        console.log("Removing OIDC user");
         oidcAuth.removeUser();
       } catch (e) {
         console.error("Error removing OIDC user:", e);
       }
     }
+
+    // Use the proper Cognito sign-out URL
+    const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
+    const logoutUri = encodeURIComponent("https://app.atarpredictionsqld.com.au/login");
+    const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     
-    // Wipe all browser state for this site as aggressively as possible
-    console.log("Clearing storage");
-    try {
-      // Clear all storage
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Clear all cookies
-      document.cookie.split(';').forEach(cookie => {
-        const parts = cookie.split('=');
-        const name = parts[0].trim();
-        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
-      });
-      
-      // Use js-cookie to clear cookies as well (double clean)
-      Object.keys(Cookies.get()).forEach(function(cookieName) {
-        Cookies.remove(cookieName);
-      });
-    } catch (e) {
-      console.error("Error clearing storage:", e);
-    }
-    
-    // Force a page navigation to break any in-memory state
-    console.log("Redirecting to new page");
-    
-    // Construct a URL for our own page that won't trigger an automatic login
-    const randomParam = Math.random().toString(36).substring(2, 15);
-    const destination = `/login?reset=true&nocache=${randomParam}`;
-    
-    // Navigate to our own page first
-    window.location.href = destination;
+    // Redirect to Cognito's logout endpoint
+    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${logoutUri}`;
   };
 
   const createPortalSession = async () => {
