@@ -259,6 +259,20 @@ const MainAppContent = () => {
   
   const { user, logout, createPortalSession } = useAuth();
 
+  // Add this useEffect to expose the logout function globally for debugging
+  useEffect(() => {
+    window.debugLogout = () => {
+      console.log("Debug logout function called");
+      try {
+        logout();
+        console.log("Logout function executed");
+      } catch (error) {
+        console.error("Error during logout:", error);
+      }
+    };
+    console.log("Debug logout function is available. Call window.debugLogout() to test logout.");
+  }, [logout]);
+
   useEffect(() => {
     console.log("Data received in App:", data);
     // When data is set, update the hasUploadedData flag
@@ -418,7 +432,15 @@ const MainAppContent = () => {
               <button 
                 className="btn-secondary" 
                 style={{ padding: '8px 16px', fontSize: '14px' }}
-                onClick={logout}
+                onClick={() => {
+                  console.log("Logout button clicked");
+                  try {
+                    logout();
+                    console.log("Logout function called");
+                  } catch (error) {
+                    console.error("Error during logout:", error);
+                  }
+                }}
               >
                 Log Out
               </button>
