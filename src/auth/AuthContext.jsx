@@ -70,27 +70,62 @@ export function AuthProvider({ children }) {
     oidcAuth.signinRedirect();
   };
 
-  // Logout function using Cognito's recommended method
+  // Enhanced logout function with more thorough cleanup
   const logout = () => {
-    // Local cleanup
+    // Log the beginning of logout process
+    console.log("Starting logout process");
+    
+    // Local state cleanup
     setIsAuthenticated(false);
     setUser(null);
     
-    // Remove local tokens
-    if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
+    // Make sure we completely remove the user from OIDC context
+    if (oidcAuth) {
       try {
-        oidcAuth.removeUser();
+        // First remove the user from OIDC storage
+        if (typeof oidcAuth.removeUser === 'function') {
+          console.log("Removing OIDC user");
+          oidcAuth.removeUser();
+        }
+        
+        // Clear any tokens from storage
+        const storageKey = `oidc.user:https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iDzdvQ5YV:4isq033nj4h9hfmpfoo8ikjchf`;
+        console.log("Clearing storage for key:", storageKey);
+        
+        localStorage.removeItem(storageKey);
+        sessionStorage.removeItem(storageKey);
+        
+        // Clear any other potential auth-related storage
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('oidc.') || key.includes('cognito'))) {
+            console.log("Removing additional local storage item:", key);
+            localStorage.removeItem(key);
+          }
+        }
+        
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && (key.startsWith('oidc.') || key.includes('cognito'))) {
+            console.log("Removing additional session storage item:", key);
+            sessionStorage.removeItem(key);
+          }
+        }
       } catch (e) {
-        console.error("Error removing OIDC user:", e);
+        console.error("Error during local logout:", e);
       }
     }
 
-    // Use Cognito's recommended logout approach
+    // Then redirect to Cognito's logout endpoint
     const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-    const logoutUri = "https://atarpredictionsqld.com.au";
+    const logoutUri = "https://www.atarpredictionsqld.com.au"; // Match exactly with Cognito settings
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     
-    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    console.log("Redirecting to logout URL:", logoutUrl);
+    
+    // Use window.location.replace instead of href for a more complete redirect
+    window.location.replace(logoutUrl);
   };
 
   const createPortalSession = async () => {
