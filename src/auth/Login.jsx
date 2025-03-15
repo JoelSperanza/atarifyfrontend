@@ -9,7 +9,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check if this is a reset request (coming from logout)
+  // Checks if this is a reset request (coming from logout)
   const isReset = new URLSearchParams(location.search).get('reset') === 'true';
 
   useEffect(() => {
