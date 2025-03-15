@@ -111,7 +111,7 @@ export function AuthProvider({ children }) {
     setTimeout(() => {
       console.log("Now redirecting to Cognito logout");
       window.location.replace(logoutUrl);
-    }, 1000); // 1 second delay
+    }, 4000); // 4 second delay
   };
 
   const createPortalSession = async () => {
