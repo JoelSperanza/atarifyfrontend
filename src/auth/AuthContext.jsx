@@ -70,8 +70,10 @@ export function AuthProvider({ children }) {
     oidcAuth.signinRedirect();
   };
 
-  // Fixed logout function with correct URL
+  // Enhanced logout function with delay
   const logout = () => {
+    console.log("Logout process started");
+    
     // Local cleanup
     setIsAuthenticated(false);
     setUser(null);
@@ -79,6 +81,7 @@ export function AuthProvider({ children }) {
     // Clear tokens from sessionStorage where they're stored
     try {
       const storageKey = `oidc.user:https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iDzdvQ5YV:4isq033nj4h9hfmpfoo8ikjchf`;
+      console.log("Clearing session storage token");
       sessionStorage.removeItem(storageKey);
       localStorage.removeItem(storageKey); // For good measure
     } catch (e) {
@@ -88,6 +91,7 @@ export function AuthProvider({ children }) {
     // Remove user from OIDC context
     if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
       try {
+        console.log("Removing OIDC user");
         oidcAuth.removeUser();
       } catch (e) {
         console.error("Error removing OIDC user:", e);
@@ -100,9 +104,14 @@ export function AuthProvider({ children }) {
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     
     const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    console.log("Preparing to redirect to:", logoutUrl);
     
-    // Use window.location.replace for a more complete redirect
-    window.location.replace(logoutUrl);
+    // Add a delay before redirecting
+    console.log("Waiting before redirect...");
+    setTimeout(() => {
+      console.log("Now redirecting to Cognito logout");
+      window.location.replace(logoutUrl);
+    }, 1000); // 1 second delay
   };
 
   const createPortalSession = async () => {
