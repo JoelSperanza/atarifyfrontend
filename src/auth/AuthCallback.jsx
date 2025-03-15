@@ -6,7 +6,7 @@ import { useAuth } from 'react-oidc-context';
 const AuthCallback = () => {
   const navigate = useNavigate();
   const auth = useAuth();
-  const [loadingMessage, setLoadingMessage] = useState("Processing authentication...");
+  const [loadingMessage, setLoadingMessage] = useState("Processing.");
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -15,17 +15,12 @@ const AuthCallback = () => {
     if (code) {
       console.log("✅ Authentication code detected. Waiting for authentication...");
 
-      // Start a loading effect so users see something happening
-      const messages = [
-        "Processing authentication...",
-        "Verifying login details...",
-        "Finalizing authentication...",
-      ];
-      let index = 0;
+      // 🔄 Loading dots animation: "Processing." → "Processing.." → "Processing..."
+      let dots = 1;
       const messageInterval = setInterval(() => {
-        setLoadingMessage(messages[index]);
-        index = (index + 1) % messages.length;
-      }, 1200); // Rotate messages every 1.2 seconds
+        dots = (dots % 3) + 1; // Cycles 1 → 2 → 3 → 1
+        setLoadingMessage(`Processing${".".repeat(dots)}`);
+      }, 500); // Updates every 0.5 seconds for smooth animation
 
       // 🚀 Listen for authentication state updates
       if (auth.isAuthenticated) {
@@ -69,3 +64,4 @@ const AuthCallback = () => {
 };
 
 export default AuthCallback;
+
