@@ -8,32 +8,21 @@ const AuthCallback = () => {
   const auth = useAuth();
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
+    // ✅ If authentication is done, redirect to homepage
+    if (auth.isAuthenticated) {
+      navigate('/');
+      return;
+    }
 
-    // ✅ Only log authentication state if there's an actual error
+    // ✅ If there's an error, log it and send user to homepage
     if (auth.error) {
-      console.error("Auth error:", auth.error);
+      console.error("Authentication error:", auth.error);
+      navigate('/');
+      return;
     }
-
-    // ✅ Only trigger sign-in if needed
-    if (code && !auth.isLoading && !auth.isAuthenticated && !auth.error) {
-      auth.signinCallback().then(() => {
-        navigate('/');
-      }).catch((error) => {
-        console.error("Signin callback failed:", error);
-        navigate('/');
-      });
-    }
-    // ✅ Redirect once authentication is complete
-    else if (!auth.isLoading) {
-      if (auth.isAuthenticated) {
-        navigate('/');
-      } else if (auth.error) {
-        navigate('/');
-      }
-    }
-  }, [auth.isLoading, auth.isAuthenticated, auth.error, navigate]);
+    
+    // ✅ If still loading, do nothing
+  }, [auth.isAuthenticated, auth.error, navigate]);
 
   return (
     <div style={{ 
@@ -50,3 +39,4 @@ const AuthCallback = () => {
 };
 
 export default AuthCallback;
+
