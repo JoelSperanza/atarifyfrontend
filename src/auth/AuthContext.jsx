@@ -10,8 +10,14 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // NEW: Prevents loops
 
   useEffect(() => {
+    if (isLoggingOut) {
+      console.log("Logout in progress, skipping authentication check...");
+      return;
+    }
+
     if (oidcAuth.isLoading) {
       setIsLoading(true);
       return;
@@ -64,7 +70,7 @@ export function AuthProvider({ children }) {
       setUser(null);
       setIsLoading(false);
     }
-  }, [oidcAuth.isAuthenticated, oidcAuth.isLoading, oidcAuth.user]);
+  }, [oidcAuth.isAuthenticated, oidcAuth.isLoading, oidcAuth.user, isLoggingOut]); // NEW: Stop updates if logging out
 
   const login = () => {
     setError(null);
@@ -73,15 +79,16 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     console.log("Logout process started");
+    setIsLoggingOut(true); // NEW: Prevents `useEffect()` from running
 
     try {
-      // 1️⃣ Remove authentication tokens from storage
+      // Remove authentication tokens from storage
       const storageKey = `oidc.user:https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iDzdvQ5YV:4isq033nj4h9hfmpfoo8ikjchf`;
       console.log("Clearing session storage token...");
       sessionStorage.removeItem(storageKey);
       localStorage.removeItem(storageKey);
 
-      // 2️⃣ Fully remove the OIDC user session BEFORE updating state
+      // Fully remove the OIDC user session
       if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
         console.log("Removing OIDC user...");
         await oidcAuth.removeUser();
@@ -90,24 +97,24 @@ export function AuthProvider({ children }) {
       console.error("Error during logout:", e);
     }
 
-    // 3️⃣ Redirect FIRST, then update state after a delay
+    // Redirect BEFORE React gets a chance to re-check authentication
     const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
     const logoutUri = "https://atarpredictionsqld.com.au"; // No www
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
 
-    console.log("Finalizing logout... Redirecting to Cognito logout in 500ms");
+    console.log("Finalizing logout... Redirecting to Cognito logout.");
 
     setTimeout(() => {
-      console.log("Redirecting to:", logoutUrl);
       window.location.replace(logoutUrl);
-      
-      // 4️⃣ State update only AFTER redirect (prevent React from interfering)
+
+      // State reset after logout completes
       setTimeout(() => {
         console.log("Updating React state after logout");
         setIsAuthenticated(false);
         setUser(null);
-      }, 2000); // Ensure React updates state AFTER Cognito logout is complete
+        setIsLoggingOut(false);
+      }, 2000);
     }, 500);
   };
 
@@ -153,6 +160,5 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
-
 
 
