@@ -1,57 +1,40 @@
 // src/auth/AuthCallback.jsx
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const auth = useAuth();
-  const [debugInfo, setDebugInfo] = useState({});
-  const [processingState, setProcessingState] = useState('processing');
-  
+
   useEffect(() => {
-    // Log detailed state for debugging
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
-    
-    const authState = { 
-      isLoading: auth.isLoading, 
-      isAuthenticated: auth.isAuthenticated,
-      hasError: !!auth.error,
-      errorMessage: auth.error?.message,
-      hasCode: !!code,
-      location: window.location.href
-    };
-    
-    console.log("Auth callback state:", authState);
-    setDebugInfo(authState);
-    
-    // If we have a code but aren't authenticated, try to manually trigger signin
+
+    // ✅ Only log authentication state if there's an actual error
+    if (auth.error) {
+      console.error("Auth error:", auth.error);
+    }
+
+    // ✅ Only trigger sign-in if needed
     if (code && !auth.isLoading && !auth.isAuthenticated && !auth.error) {
-      console.log("Manually triggering signinCallback");
-      setProcessingState('manual-signin');
-      
-      // Force a redirect to the root after the code has been processed
-      setTimeout(() => {
+      auth.signinCallback().then(() => {
         navigate('/');
-      }, 2000);
-    } 
-    // Standard flow - navigate when auth is complete
+      }).catch((error) => {
+        console.error("Signin callback failed:", error);
+        navigate('/');
+      });
+    }
+    // ✅ Redirect once authentication is complete
     else if (!auth.isLoading) {
       if (auth.isAuthenticated) {
-        console.log("Authentication successful, redirecting to app");
-        setProcessingState('success');
         navigate('/');
       } else if (auth.error) {
-        console.error("Auth callback error:", auth.error);
-        setProcessingState('error');
-        setTimeout(() => {
-          navigate('/');
-        }, 2000);
+        navigate('/');
       }
     }
   }, [auth.isLoading, auth.isAuthenticated, auth.error, navigate]);
-  
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -61,14 +44,7 @@ const AuthCallback = () => {
       height: '100vh',
       padding: '20px' 
     }}>
-      {processingState === 'processing' && <div>Processing authentication...</div>}
-      {processingState === 'manual-signin' && <div>Manually processing authentication code...</div>}
-      {processingState === 'success' && <div>Authentication successful! Redirecting...</div>}
-      {processingState === 'error' && <div>Authentication error. Redirecting...</div>}
-      
-      <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
-        <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
-      </div>
+      <div>Processing authentication...</div>
     </div>
   );
 };
