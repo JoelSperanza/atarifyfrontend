@@ -7,47 +7,47 @@ const AuthCallback = () => {
   const navigate = useNavigate();
   const auth = useAuth();
   const [debugInfo, setDebugInfo] = useState({});
+  const [processingState, setProcessingState] = useState('processing');
   
   useEffect(() => {
     // Log detailed state for debugging
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    
     const authState = { 
       isLoading: auth.isLoading, 
       isAuthenticated: auth.isAuthenticated,
       hasError: !!auth.error,
       errorMessage: auth.error?.message,
+      hasCode: !!code,
       location: window.location.href
     };
     
     console.log("Auth callback state:", authState);
     setDebugInfo(authState);
     
-    // Handle authentication completion
-    if (!auth.isLoading) {
+    // If we have a code but aren't authenticated, try to manually trigger signin
+    if (code && !auth.isLoading && !auth.isAuthenticated && !auth.error) {
+      console.log("Manually triggering signinCallback");
+      setProcessingState('manual-signin');
+      
+      // Force a redirect to the root after the code has been processed
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+    } 
+    // Standard flow - navigate when auth is complete
+    else if (!auth.isLoading) {
       if (auth.isAuthenticated) {
         console.log("Authentication successful, redirecting to app");
+        setProcessingState('success');
         navigate('/');
       } else if (auth.error) {
         console.error("Auth callback error:", auth.error);
-        // Wait a moment before redirecting to avoid loops
+        setProcessingState('error');
         setTimeout(() => {
           navigate('/');
-        }, 3000);
-      } else {
-        console.log("Not authenticated and no error");
-        // If we reach here, something unexpected happened
-        // Try force-handling the callback
-        try {
-          // This is an advanced debugging step to help diagnose the issue
-          const urlParams = new URLSearchParams(window.location.search);
-          const code = urlParams.get('code');
-          if (code) {
-            console.log("Found authorization code, but auth library didn't process it");
-          } else {
-            console.log("No authorization code in URL");
-          }
-        } catch (e) {
-          console.error("Error checking URL params:", e);
-        }
+        }, 2000);
       }
     }
   }, [auth.isLoading, auth.isAuthenticated, auth.error, navigate]);
@@ -61,7 +61,11 @@ const AuthCallback = () => {
       height: '100vh',
       padding: '20px' 
     }}>
-      <div>Processing authentication...</div>
+      {processingState === 'processing' && <div>Processing authentication...</div>}
+      {processingState === 'manual-signin' && <div>Manually processing authentication code...</div>}
+      {processingState === 'success' && <div>Authentication successful! Redirecting...</div>}
+      {processingState === 'error' && <div>Authentication error. Redirecting...</div>}
+      
       <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
         <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
       </div>
