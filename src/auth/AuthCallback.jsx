@@ -6,6 +6,7 @@ import { useAuth } from 'react-oidc-context';
 const AuthCallback = () => {
   const navigate = useNavigate();
   const auth = useAuth();
+  let authCheckInterval; // ✅ Define it here so it's always in scope
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -14,10 +15,10 @@ const AuthCallback = () => {
     if (code) {
       console.log("✅ Authentication code detected. Waiting for authentication to complete...");
 
-      // Define interval correctly
-      const authCheckInterval = setInterval(() => {
+      // ✅ Now correctly assigning to the variable defined outside
+      authCheckInterval = setInterval(() => {
         if (!auth.isLoading) {
-          clearInterval(authCheckInterval); // Now correctly defined
+          clearInterval(authCheckInterval); // ✅ Now always valid
 
           if (auth.isAuthenticated) {
             console.log("🎉 Authentication successful! Redirecting...");
@@ -33,7 +34,11 @@ const AuthCallback = () => {
       navigate('/');
     }
 
-    return () => clearInterval(authCheckInterval); // Proper cleanup
+    return () => {
+      if (authCheckInterval) {
+        clearInterval(authCheckInterval); // ✅ Only clears if it exists
+      }
+    };
   }, [auth, navigate]);
 
   return null; // No UI needed, just silently process authentication
