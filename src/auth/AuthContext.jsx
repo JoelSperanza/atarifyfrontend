@@ -51,9 +51,11 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    console.log("Starting logout process...");
     setIsProcessingAuth(true);
 
     try {
+      // 1️⃣ Remove stored user session
       const storageKey = `oidc.user:https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iDzdvQ5YV:4isq033nj4h9hfmpfoo8ikjchf`;
       sessionStorage.removeItem(storageKey);
       localStorage.removeItem(storageKey);
@@ -61,20 +63,31 @@ export function AuthProvider({ children }) {
       if (oidcAuth?.removeUser) {
         await oidcAuth.removeUser();
       }
-    } catch (e) {
-      console.error("Error during logout:", e);
-    }
 
-    const logoutUri = "https://atarpredictionsqld.com.au";
-    const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
-    const logoutUrl = `${cognitoDomain}/logout?client_id=4isq033nj4h9hfmpfoo8ikjchf&logout_uri=${encodeURIComponent(logoutUri)}`;
-
-    setTimeout(() => {
-      window.location.replace(logoutUrl);
       setIsAuthenticated(false);
       setUser(null);
-      setIsProcessingAuth(false);
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+
+    // 2️⃣ Construct Cognito logout URL
+    const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
+    const logoutUri = "https://atarpredictionsqld.com.au";
+    const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
+    const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+
+    console.log("Logout URL:", logoutUrl);
+
+    // 3️⃣ Ensure session is fully cleared before redirecting
+    setTimeout(() => {
+      console.log("Redirecting to Cognito logout...");
+      window.location.replace(logoutUrl);
     }, 500);
+    
+    // 4️⃣ Ensure processing flag is cleared after logout
+    setTimeout(() => {
+      setIsProcessingAuth(false);
+    }, 2000);
   };
 
   return (
@@ -85,4 +98,5 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
 
