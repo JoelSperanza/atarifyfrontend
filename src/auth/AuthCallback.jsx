@@ -14,10 +14,10 @@ const AuthCallback = () => {
     if (code) {
       console.log("✅ Authentication code detected. Waiting for authentication to complete...");
 
-      // Continuously check authentication state
-      const interval = setInterval(() => {
+      // Define interval correctly
+      const authCheckInterval = setInterval(() => {
         if (!auth.isLoading) {
-          clearInterval(interval);
+          clearInterval(authCheckInterval); // Now correctly defined
 
           if (auth.isAuthenticated) {
             console.log("🎉 Authentication successful! Redirecting...");
@@ -33,7 +33,7 @@ const AuthCallback = () => {
       navigate('/');
     }
 
-    return () => clearInterval(interval);
+    return () => clearInterval(authCheckInterval); // Proper cleanup
   }, [auth, navigate]);
 
   return null; // No UI needed, just silently process authentication
