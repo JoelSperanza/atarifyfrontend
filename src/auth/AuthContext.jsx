@@ -1,4 +1,4 @@
-// src/auth/AuthContext.jsx
+/// src/auth/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth as useOidcAuth } from 'react-oidc-context';
 import Cookies from 'js-cookie';
@@ -65,9 +65,10 @@ export function AuthProvider({ children }) {
     }
   }, [oidcAuth.isAuthenticated, oidcAuth.isLoading, oidcAuth.user]);
 
+  // We no longer need the login function as users will be redirected directly to Cognito
+  // If needed for any reason, keeping a simple version that redirects to Cognito
   const login = () => {
-    setError(null);
-    oidcAuth.signinRedirect();
+    window.location.href = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com/login?client_id=4isq033nj4h9hfmpfoo8ikjchf&redirect_uri=https://app.atarpredictionsqld.com.au/auth-callback&response_type=code";
   };
 
   const logout = () => {
@@ -84,12 +85,13 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Variables from the example code
+    // Variables for Cognito logout
     const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-    const logoutUri = "https://app.atarpredictionsqld.com.au/login"; // Note: not encoded
+    // Updated to redirect back to the main website instead of the login page
+    const logoutUri = "https://atarpredictionsqld.com.au";
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     
-    // Uses template literal format exactly as shown in example
+    // Construct logout URL
     const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
     
     // Redirect to the constructed URL

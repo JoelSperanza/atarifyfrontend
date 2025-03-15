@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import UploadForm from "./UploadForm";
-import Login from "./auth/Login";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import './App.css';
@@ -666,8 +665,7 @@ const App = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<Login />} />
-	   <Route path="/auth-callback" element={<AuthCallback />} />
+          <Route path="/auth-callback" element={<AuthCallback />} />
           <Route
             path="/*"
             element={

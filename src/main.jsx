@@ -10,6 +10,10 @@ const cognitoAuthConfig = {
   redirect_uri: "https://app.atarpredictionsqld.com.au/auth-callback",
   response_type: "code",
   scope: "openid email profile",
+  // Adding additional configuration to ensure proper handling
+  automaticSilentRenew: true,
+  loadUserInfo: true,
+  monitorSession: true
 };
 
 createRoot(document.getElementById('root')).render(
