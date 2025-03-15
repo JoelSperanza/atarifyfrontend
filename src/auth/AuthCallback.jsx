@@ -8,21 +8,20 @@ const AuthCallback = () => {
   const auth = useAuth();
 
   useEffect(() => {
-    // ✅ If authentication is done, redirect to homepage
-    if (auth.isAuthenticated) {
-      navigate('/');
-      return;
-    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
 
-    // ✅ If there's an error, log it and send user to homepage
-    if (auth.error) {
-      console.error("Authentication error:", auth.error);
-      navigate('/');
-      return;
+    if (code) {
+      console.log("Processing authentication code...");
+      auth.signinCallback().then(() => {
+        console.log("Authentication successful, redirecting...");
+        navigate('/');
+      }).catch(error => {
+        console.error("Authentication error:", error);
+        navigate('/');
+      });
     }
-    
-    // ✅ If still loading, do nothing
-  }, [auth.isAuthenticated, auth.error, navigate]);
+  }, [auth, navigate]);
 
   return (
     <div style={{ 
