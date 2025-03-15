@@ -1,33 +1,53 @@
 // src/auth/AuthCallback.jsx
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const auth = useAuth();
+  const [debugInfo, setDebugInfo] = useState({});
   
   useEffect(() => {
-    // Add detailed logging
-    console.log("Auth callback state:", { 
+    // Log detailed state for debugging
+    const authState = { 
       isLoading: auth.isLoading, 
       isAuthenticated: auth.isAuthenticated,
-      error: auth.error,
-      user: auth.user
-    });
+      hasError: !!auth.error,
+      errorMessage: auth.error?.message,
+      location: window.location.href
+    };
     
-    // Simply wait for the authentication process to complete
+    console.log("Auth callback state:", authState);
+    setDebugInfo(authState);
+    
+    // Handle authentication completion
     if (!auth.isLoading) {
       if (auth.isAuthenticated) {
         console.log("Authentication successful, redirecting to app");
         navigate('/');
       } else if (auth.error) {
         console.error("Auth callback error:", auth.error);
-        navigate('/');
+        // Wait a moment before redirecting to avoid loops
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
       } else {
-        console.log("Not authenticated but no error");
-        // There might be a silent issue - manually redirect to login
-        window.location.href = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com/login?client_id=4isq033nj4h9hfmpfoo8ikjchf&redirect_uri=https://app.atarpredictionsqld.com.au/auth-callback&response_type=code";
+        console.log("Not authenticated and no error");
+        // If we reach here, something unexpected happened
+        // Try force-handling the callback
+        try {
+          // This is an advanced debugging step to help diagnose the issue
+          const urlParams = new URLSearchParams(window.location.search);
+          const code = urlParams.get('code');
+          if (code) {
+            console.log("Found authorization code, but auth library didn't process it");
+          } else {
+            console.log("No authorization code in URL");
+          }
+        } catch (e) {
+          console.error("Error checking URL params:", e);
+        }
       }
     }
   }, [auth.isLoading, auth.isAuthenticated, auth.error, navigate]);
@@ -35,16 +55,15 @@ const AuthCallback = () => {
   return (
     <div style={{ 
       display: 'flex', 
+      flexDirection: 'column',
       justifyContent: 'center', 
       alignItems: 'center', 
-      height: '100vh' 
+      height: '100vh',
+      padding: '20px' 
     }}>
-      <div>
-        <p>Processing authentication...</p>
-        <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
-          Auth state: {auth.isLoading ? "Loading" : auth.isAuthenticated ? "Authenticated" : "Not authenticated"}
-          {auth.error && <span style={{ color: 'red' }}> (Error: {auth.error.message})</span>}
-        </p>
+      <div>Processing authentication...</div>
+      <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
+        <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
       </div>
     </div>
   );
