@@ -74,18 +74,14 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     console.log("Logout process started");
 
-    // 1️⃣ Immediately update state to prevent React from re-authenticating
-    setIsAuthenticated(false);
-    setUser(null);
-
     try {
-      // 2️⃣ Remove authentication tokens from storage
+      // 1️⃣ Remove authentication tokens from storage
       const storageKey = `oidc.user:https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iDzdvQ5YV:4isq033nj4h9hfmpfoo8ikjchf`;
       console.log("Clearing session storage token...");
       sessionStorage.removeItem(storageKey);
       localStorage.removeItem(storageKey);
 
-      // 3️⃣ Fully remove the OIDC user session before redirecting
+      // 2️⃣ Fully remove the OIDC user session BEFORE updating state
       if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
         console.log("Removing OIDC user...");
         await oidcAuth.removeUser();
@@ -94,20 +90,25 @@ export function AuthProvider({ children }) {
       console.error("Error during logout:", e);
     }
 
-    // 4️⃣ Short delay to ensure React doesn’t instantly re-authenticate
+    // 3️⃣ Redirect FIRST, then update state after a delay
+    const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
+    const logoutUri = "https://atarpredictionsqld.com.au"; // No www
+    const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
+    const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+
+    console.log("Finalizing logout... Redirecting to Cognito logout in 500ms");
+
     setTimeout(() => {
-      console.log("Finalizing logout... Redirecting to Cognito logout.");
-
-      const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-      const logoutUri = "https://atarpredictionsqld.com.au"; // No www
-      const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
-      const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-
       console.log("Redirecting to:", logoutUrl);
       window.location.replace(logoutUrl);
-    }, 500); // ⏳ Small delay prevents unwanted re-authentication
-
-    console.log("Logout sequence initiated...");
+      
+      // 4️⃣ State update only AFTER redirect (prevent React from interfering)
+      setTimeout(() => {
+        console.log("Updating React state after logout");
+        setIsAuthenticated(false);
+        setUser(null);
+      }, 2000); // Ensure React updates state AFTER Cognito logout is complete
+    }, 500);
   };
 
   const createPortalSession = async () => {
@@ -152,4 +153,6 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
+
 
