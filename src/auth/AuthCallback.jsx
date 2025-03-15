@@ -1,40 +1,54 @@
 // src/auth/AuthCallback.jsx
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const auth = useAuth();
+  const [debugInfo, setDebugInfo] = useState({});
+  const [processingState, setProcessingState] = useState('processing');
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
 
-    if (code) {
-      console.log("Authentication code detected. Checking authentication state...");
+    const authState = { 
+      isLoading: auth.isLoading, 
+      isAuthenticated: auth.isAuthenticated,
+      hasError: !!auth.error,
+      errorMessage: auth.error?.message,
+      hasCode: !!code,
+      location: window.location.href
+    };
 
-      // Wait for authentication to complete
-      const checkAuth = setInterval(() => {
-        if (!auth.isLoading) {
-          clearInterval(checkAuth);
+    console.log("Auth callback state:", authState);
+    setDebugInfo(authState);
 
-          if (auth.isAuthenticated) {
-            console.log("Authentication successful, redirecting...");
-            navigate('/');
-          } else {
-            console.error("Authentication failed or not complete.");
-            navigate('/');
-          }
-        }
-      }, 500);
-    } else {
-      console.warn("No authentication code found. Redirecting...");
-      navigate('/');
+    // If we have a code but aren't authenticated, try to manually trigger signin
+    if (code && !auth.isLoading && !auth.isAuthenticated && !auth.error) {
+      console.log("Manually triggering signinCallback");
+      setProcessingState('manual-signin');
+      
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+    } 
+    // Standard flow - navigate when auth is complete
+    else if (!auth.isLoading) {
+      if (auth.isAuthenticated) {
+        console.log("Authentication successful, redirecting to app");
+        setProcessingState('success');
+        navigate('/');
+      } else if (auth.error) {
+        console.error("Auth callback error:", auth.error);
+        setProcessingState('error');
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+      }
     }
-
-    return () => clearInterval(checkAuth);
-  }, [auth, navigate]);
+  }, [auth.isLoading, auth.isAuthenticated, auth.error, navigate]);
 
   return (
     <div style={{ 
@@ -45,10 +59,16 @@ const AuthCallback = () => {
       height: '100vh',
       padding: '20px' 
     }}>
-      <div>Processing authentication...</div>
+      {processingState === 'processing' && <div>Processing authentication...</div>}
+      {processingState === 'manual-signin' && <div>Manually processing authentication code...</div>}
+      {processingState === 'success' && <div>Authentication successful! Redirecting...</div>}
+      {processingState === 'error' && <div>Authentication error. Redirecting...</div>}
+      
+      <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
+        <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+      </div>
     </div>
   );
 };
 
 export default AuthCallback;
-
