@@ -12,15 +12,28 @@ const AuthCallback = () => {
     const code = urlParams.get('code');
 
     if (code) {
-      console.log("Processing authentication code...");
-      auth.signinCallback().then(() => {
-        console.log("Authentication successful, redirecting...");
-        navigate('/');
-      }).catch(error => {
-        console.error("Authentication error:", error);
-        navigate('/');
-      });
+      console.log("Authentication code detected. Checking authentication state...");
+
+      // Wait for authentication to complete
+      const checkAuth = setInterval(() => {
+        if (!auth.isLoading) {
+          clearInterval(checkAuth);
+
+          if (auth.isAuthenticated) {
+            console.log("Authentication successful, redirecting...");
+            navigate('/');
+          } else {
+            console.error("Authentication failed or not complete.");
+            navigate('/');
+          }
+        }
+      }, 500);
+    } else {
+      console.warn("No authentication code found. Redirecting...");
+      navigate('/');
     }
+
+    return () => clearInterval(checkAuth);
   }, [auth, navigate]);
 
   return (
