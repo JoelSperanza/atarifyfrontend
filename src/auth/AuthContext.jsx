@@ -89,7 +89,7 @@ export function AuthProvider({ children }) {
     const logoutUri = "https://app.atarpredictionsqld.com.au/login"; // Note: not encoded
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     
-    // Use template literal format exactly as shown in example
+    // Uses template literal format exactly as shown in example
     const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
     
     // Redirect to the constructed URL
