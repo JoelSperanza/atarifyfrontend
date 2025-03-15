@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth } from './AuthContext';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, login } = useAuth();
   
   if (isLoading) {
     return (
@@ -19,9 +19,19 @@ const ProtectedRoute = ({ children }) => {
   }
   
   if (!isAuthenticated) {
-    // Redirect directly to Cognito login instead of the login page
-    window.location.href = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com/login?client_id=4isq033nj4h9hfmpfoo8ikjchf&redirect_uri=https://app.atarpredictionsqld.com.au/auth-callback&response_type=code";
-    return null; // Return null while redirecting
+    // Use the login function which uses oidcAuth.signinRedirect()
+    // This is the Cognito-recommended approach
+    login();
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh' 
+      }}>
+        <div>Redirecting to login...</div>
+      </div>
+    );
   }
   
   return children;

@@ -1,7 +1,6 @@
-/// src/auth/AuthContext.jsx
+// src/auth/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth as useOidcAuth } from 'react-oidc-context';
-import Cookies from 'js-cookie';
 
 const AuthContext = createContext();
 
@@ -65,12 +64,13 @@ export function AuthProvider({ children }) {
     }
   }, [oidcAuth.isAuthenticated, oidcAuth.isLoading, oidcAuth.user]);
 
-  // We no longer need the login function as users will be redirected directly to Cognito
-  // If needed for any reason, keeping a simple version that redirects to Cognito
+  // Use the OIDC auth's signinRedirect method as recommended by Cognito
   const login = () => {
-    window.location.href = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com/login?client_id=4isq033nj4h9hfmpfoo8ikjchf&redirect_uri=https://app.atarpredictionsqld.com.au/auth-callback&response_type=code";
+    setError(null);
+    oidcAuth.signinRedirect();
   };
 
+  // Logout function using Cognito's recommended method
   const logout = () => {
     // Local cleanup
     setIsAuthenticated(false);
@@ -85,17 +85,12 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Variables for Cognito logout
+    // Use Cognito's recommended logout approach
     const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-    // Updated to redirect back to the main website instead of the login page
     const logoutUri = "https://atarpredictionsqld.com.au";
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     
-    // Construct logout URL
-    const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-    
-    // Redirect to the constructed URL
-    window.location.href = logoutUrl;
+    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
   };
 
   const createPortalSession = async () => {

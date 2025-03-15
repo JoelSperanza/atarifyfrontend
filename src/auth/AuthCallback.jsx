@@ -1,36 +1,26 @@
 // src/auth/AuthCallback.jsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth as useOidcAuth } from 'react-oidc-context';
+import { useAuth } from 'react-oidc-context';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
-  const auth = useOidcAuth();
+  const auth = useAuth();
   
   useEffect(() => {
-    // Process authentication callback
-    const processCallback = async () => {
-      try {
-        // Attempt to process the auth callback
-        // The OIDC library should handle this automatically
-        
-        // Wait for authentication process to complete
-        if (!auth.isLoading && auth.isAuthenticated) {
-          // Redirect to the main app after successful authentication
-          navigate('/');
-        } else if (!auth.isLoading && !auth.isAuthenticated) {
-          // If authentication failed, redirect to Cognito login again
-          window.location.href = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com/login?client_id=4isq033nj4h9hfmpfoo8ikjchf&redirect_uri=https://app.atarpredictionsqld.com.au/auth-callback&response_type=code";
-        }
-      } catch (error) {
-        console.error("Authentication callback processing error:", error);
-        // On error, redirect to Cognito login
-        window.location.href = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com/login?client_id=4isq033nj4h9hfmpfoo8ikjchf&redirect_uri=https://app.atarpredictionsqld.com.au/auth-callback&response_type=code";
+    // Simply wait for the authentication process to complete
+    if (!auth.isLoading) {
+      if (auth.isAuthenticated) {
+        // On successful authentication, redirect to the main app
+        navigate('/');
+      } else if (auth.error) {
+        // If there's an error, log it and redirect to the main app
+        // The ProtectedRoute will handle redirecting to login if needed
+        console.error("Auth callback error:", auth.error);
+        navigate('/');
       }
-    };
-
-    processCallback();
-  }, [auth.isAuthenticated, auth.isLoading, navigate]);
+    }
+  }, [auth.isLoading, auth.isAuthenticated, auth.error, navigate]);
   
   return (
     <div style={{ 
