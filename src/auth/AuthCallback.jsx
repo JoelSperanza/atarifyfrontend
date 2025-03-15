@@ -12,32 +12,31 @@ const AuthCallback = () => {
     const code = urlParams.get('code');
 
     if (code) {
-      console.log("Authentication code detected. Waiting for authentication to complete...");
+      console.log("✅ Authentication code detected. Waiting for authentication to complete...");
 
-      // Wait until authentication is fully settled
-      const checkAuth = setInterval(() => {
+      // Continuously check authentication state
+      const interval = setInterval(() => {
         if (!auth.isLoading) {
-          clearInterval(checkAuth);
+          clearInterval(interval);
 
           if (auth.isAuthenticated) {
-            console.log("✅ Authentication successful. Redirecting...");
+            console.log("🎉 Authentication successful! Redirecting...");
             navigate('/');
           } else {
-            console.error("❌ Authentication failed. Redirecting to login...");
-            navigate('/login');
+            console.error("❌ Authentication failed. Staying on auth-callback.");
           }
         }
-      }, 100);
+      }, 100); // Check every 100ms
 
     } else {
-      console.warn("No authentication code found. Redirecting to login...");
-      navigate('/login');
+      console.warn("⚠️ No authentication code found. Redirecting to home...");
+      navigate('/');
     }
 
-    return () => clearInterval(checkAuth);
+    return () => clearInterval(interval);
   }, [auth, navigate]);
 
-  return null; // No UI needed, we just process authentication and move on
+  return null; // No UI needed, just silently process authentication
 };
 
 export default AuthCallback;
