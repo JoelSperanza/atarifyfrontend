@@ -103,16 +103,20 @@ export function AuthProvider({ children }) {
     const logoutUri = "https://atarpredictionsqld.com.au"; // No www, match Cognito config
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
     
-    const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-    console.log("Preparing to redirect to:", logoutUrl);
-    
     // Add a delay before redirecting
     console.log("Waiting before redirect...");
     setTimeout(() => {
       console.log("Now redirecting to Cognito logout");
       window.location.replace(logoutUrl);
     }, 4000); // 4 second delay
-  };
+  
+	
+
+
+    const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    console.log("Preparing to redirect to:", logoutUrl);
+    
+    };
 
   const createPortalSession = async () => {
     if (window.location.hostname === 'localhost') {
