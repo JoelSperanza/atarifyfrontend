@@ -10,23 +10,25 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
-  const [isProcessingAuth, setIsProcessingAuth] = useState(false); // Prevents sign-in loops
+  const [isProcessingAuth, setIsProcessingAuth] = useState(false);
 
   useEffect(() => {
-    if (isProcessingAuth) {
-      return; // Stop auth check while login/logout is in progress
-    }
-
-    if (oidcAuth.isLoading) {
-      setIsLoading(true);
+    if (isProcessingAuth || oidcAuth.isLoading) {
       return;
     }
 
-    if (oidcAuth.isAuthenticated && oidcAuth.user) {
-      const email = oidcAuth.user.profile.email;
+    if (oidcAuth.isAuthenticated) {
+      const email = oidcAuth.user?.profile?.email;
+      if (!email) {
+        setError("Authentication error: Missing email.");
+        setIsAuthenticated(false);
+        setUser(null);
+        return;
+      }
 
       const verifySubscription = async () => {
         setIsLoading(true);
+
         if (window.location.hostname === 'localhost') {
           setIsAuthenticated(true);
           setUser({ email, customerId: 'dev-customer-id', subscriptionId: 'dev-subscription-id' });
@@ -50,7 +52,7 @@ export function AuthProvider({ children }) {
             await oidcAuth.removeUser();
             setIsAuthenticated(false);
             setUser(null);
-            setError('No active subscription found for this email.');
+            setError('No active subscription found.');
           }
         } catch (error) {
           setIsAuthenticated(false);
@@ -67,9 +69,11 @@ export function AuthProvider({ children }) {
       setUser(null);
       setIsLoading(false);
     }
-  }, [oidcAuth.isAuthenticated, oidcAuth.isLoading, oidcAuth.user, isProcessingAuth]);
+  }, [oidcAuth.isAuthenticated, oidcAuth.isLoading, isProcessingAuth]);
 
   const login = async () => {
+    if (isProcessingAuth) return;
+
     setError(null);
     setIsProcessingAuth(true);
 
@@ -78,7 +82,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       setError("Login failed. Please try again.");
     } finally {
-      setTimeout(() => setIsProcessingAuth(false), 2000); // Prevents race conditions
+      setTimeout(() => setIsProcessingAuth(false), 2000);
     }
   };
 
@@ -154,4 +158,5 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
 
