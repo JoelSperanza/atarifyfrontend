@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
             setIsAuthenticated(true);
             setUser({ email, customerId: data.customerId, subscriptionId: data.subscriptionId });
           } else {
-            oidcAuth.removeUser();
+            await oidcAuth.removeUser();
             setIsAuthenticated(false);
             setUser(null);
             setError('No active subscription found for this email.');
@@ -64,59 +64,52 @@ export function AuthProvider({ children }) {
     }
   }, [oidcAuth.isAuthenticated, oidcAuth.isLoading, oidcAuth.user]);
 
-  // Use the OIDC auth's signinRedirect method as recommended by Cognito
   const login = () => {
     setError(null);
     oidcAuth.signinRedirect();
   };
 
-  // Enhanced logout function with delay
-  const logout = () => {
+  const logout = async () => {
     console.log("Logout process started");
-    
+
     // Local cleanup
     setIsAuthenticated(false);
     setUser(null);
-    
-    // Clear tokens from sessionStorage where they're stored
+
+    // Clear tokens from storage
     try {
       const storageKey = `oidc.user:https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_iDzdvQ5YV:4isq033nj4h9hfmpfoo8ikjchf`;
-      console.log("Clearing session storage token");
+      console.log("Clearing session storage token...");
       sessionStorage.removeItem(storageKey);
-      localStorage.removeItem(storageKey); // For good measure
+      localStorage.removeItem(storageKey);
     } catch (e) {
       console.error("Error clearing storage:", e);
     }
-    
+
     // Remove user from OIDC context
     if (oidcAuth && typeof oidcAuth.removeUser === 'function') {
       try {
-        console.log("Removing OIDC user");
-        oidcAuth.removeUser();
+        console.log("Removing OIDC user...");
+        await oidcAuth.removeUser();
       } catch (e) {
         console.error("Error removing OIDC user:", e);
       }
     }
 
-    // Use the correct Cognito logout URL (with /logout and without www)
+    // Construct Cognito logout URL
     const clientId = "4isq033nj4h9hfmpfoo8ikjchf";
-    const logoutUri = "https://atarpredictionsqld.com.au"; // No www, match Cognito config
+    const logoutUri = "https://atarpredictionsqld.com.au"; // No www
     const cognitoDomain = "https://ap-southeast-2idzdvq5yv.auth.ap-southeast-2.amazoncognito.com";
-    
-    // Add a delay before redirecting
-    console.log("Waiting before redirect...");
-    setTimeout(() => {
-      console.log("Now redirecting to Cognito logout");
-      window.location.replace(logoutUrl);
-    }, 4000); // 4 second delay
-  
-	
-
-
     const logoutUrl = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-    console.log("Preparing to redirect to:", logoutUrl);
-    
-    };
+
+    console.log("Non-www Logout URL:", logoutUrl);
+    console.log("Will redirect in 5 seconds...");
+
+    setTimeout(() => {
+      console.log("Now redirecting to Cognito logout...");
+      window.location.replace(logoutUrl);
+    }, 5000);
+  };
 
   const createPortalSession = async () => {
     if (window.location.hostname === 'localhost') {
